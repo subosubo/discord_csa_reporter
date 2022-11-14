@@ -17,9 +17,8 @@ from keep_alive import keep_alive
 log = logging.getLogger("csa-reporter")
 log.setLevel(logging.DEBUG)
 
-formatter = logging.Formatter(
-    "%(asctime)s %(levelname)-8s %(message)s", "%Y-%m-%d %H:%M:%S"
-)
+formatter = logging.Formatter("%(asctime)s %(levelname)-8s %(message)s",
+                              "%Y-%m-%d %H:%M:%S")
 
 # Log to file
 filehandler = logging.FileHandler("csa_reporter.log", "a", "utf-8")
@@ -39,8 +38,7 @@ log.addHandler(streamhandler)
 def load_keywords():
     # Load keywords from config file
     KEYWORDS_CONFIG_PATH = join(
-        pathlib.Path(__file__).parent.absolute(), "config/config.yaml"
-    )
+        pathlib.Path(__file__).parent.absolute(), "config/config.yaml")
     try:
 
         with open(KEYWORDS_CONFIG_PATH, "r") as yaml_file:
@@ -112,14 +110,14 @@ async def itscheckintime():
         PRODUCT_KEYWORDS_I,
     )
     csa.load_lasttimes()
-    new_stories = csa.get_new_alerts()
+    new_alerts = csa.get_new_alerts()
 
-    # bc_title = [new_story["title"] for new_story in new_stories]
-    # print(f"Bleeping Computer Stories: {bc_title}")
+    alert_title = [new_alert["title"] for new_alert in new_alerts]
+    print(f"CSA Alerts: {alert_title}")
 
-    # for story in new_stories:
-    #     story_msg = csa.generate_new_story_message(story)
-    #     await send_discord_message(story_msg)
+    for alert in new_alerts:
+        alert_msg = csa.generate_new_alert_message(alert)
+        await send_discord_message(alert_msg)
 
     csa.update_lasttimes()
 
