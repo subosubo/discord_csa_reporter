@@ -1,21 +1,15 @@
 import datetime
 import json
 import logging
-import os
 import pathlib
-from enum import Enum
 from os.path import join
+from bs4 import BeautifulSoup
 
 import pytz
 import requests
 from discord import Color, Embed
 
 utc = pytz.UTC
-
-
-class time_type(Enum):
-    created = "created"
-    modified = "modified"
 
 
 class csa_report:
@@ -26,14 +20,13 @@ class csa_report:
         self.product = product
         self.product_i = product_i
 
-        self.ALIENVAULT_UR = "https://otx.alienvault.com/api/v1/pulses/subscribed?"
-        self.PUBLISH_ALIEN_JSON_PATH = join(
+        self.CSA_URL = "https://www.csa.gov.sg/singcert/Alerts"
+        self.PUBLISH_JSON_PATH = join(
             pathlib.Path(__file__).parent.absolute(), "output/record.json"
         )
-        self.ALIEN_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
-        self.ALIEN_MODIFIED = datetime.datetime.now(utc) - datetime.timedelta(days=1)
-        self.ALIEN_CREATED = datetime.datetime.now(utc) - datetime.timedelta(days=1)
-        self.logger = logging.getLogger("cybersecstories")
+        self.CSA_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
+        self.CSA_CREATED = datetime.datetime.now(utc) - datetime.timedelta(days=1)
+        self.logger = logging.getLogger("csa-reporter")
 
     ################## LOAD CONFIGURATIONS ####################
 
@@ -42,13 +35,10 @@ class csa_report:
 
         try:
 
-            with open(self.PUBLISH_ALIEN_JSON_PATH, "r") as json_file:
-                alien_time = json.load(json_file)
-                self.ALIEN_MODIFIED = datetime.datetime.strptime(
-                    alien_time["MODIFIED"], self.ALIEN_TIME_FORMAT
-                )
-                self.ALIEN_CREATED = datetime.datetime.strptime(
-                    alien_time["CREATED"], self.ALIEN_TIME_FORMAT
+            with open(self.PUBLISH_JSON_PATH, "r") as json_file:
+                csa_time = json.load(json_file)
+                self.CSA_CREATED = datetime.datetime.strptime(
+                    csa_time["CREATED"], self.CSA_TIME_FORMAT
                 )
 
         except Exception as e:  # If error, just keep the fault date (today - 1 day)
@@ -60,13 +50,10 @@ class csa_report:
         # Save lasttimes in json file
         try:
 
-            with open(self.PUBLISH_ALIEN_JSON_PATH, "w") as json_file:
+            with open(self.PUBLISH_JSON_PATH, "w") as json_file:
                 json.dump(
                     {
-                        "MODIFIED": self.ALIEN_MODIFIED.strftime(
-                            self.ALIEN_TIME_FORMAT
-                        ),
-                        "CREATED": self.ALIEN_CREATED.strftime(self.ALIEN_TIME_FORMAT),
+                        "CREATED": self.CSA_CREATED.strftime(self.CSA_TIME_FORMAT),
                     },
                     json_file,
                 )
@@ -74,47 +61,37 @@ class csa_report:
         except Exception as e:
             self.logger.error(f"ERROR: {e}")
 
-    ################## GET PULSES FROM OTX ALIEN  ####################
+    ################## GET ALERTS FROM CSA  ####################
 
-    def get_sub_pulse(self):
+    def get_alerts(self):
 
-        now = datetime.datetime.now() - datetime.timedelta(days=1)
-        now_str = now.strftime("%Y-%m-%d")
-        limit = 100
+        r = requests.get(f"{self.CSA_URL}")
+        if r.status_code == 200:
+            soup = BeautifulSoup(r.text(), "lxml")
+            for elem in soup.select(".sc-card-block"):
+                subdir = elem.get("href")
+                print (elem)
 
-        headers = {
-            "Content-Type": "application/json",
-            "X-OTX-API-KEY": os.getenv("ALIEN_VAULT_API"),
-        }
 
-        r = requests.get(
-            f"{self.ALIENVAULT_UR}limit={limit}&modified_since={now_str}",
-            headers=headers,
-        )
+    #def filter_alerts(self, stories, last_create: datetime.datetime):
 
-        return r.json()
+        # filtered_stories = []
+        # new_last_time = last_create
 
-    def filter_pulse(
-        self, stories, last_create: datetime.datetime, tt_filter: time_type
-    ):
+        # for story in stories:
 
-        filtered_stories = []
-        new_last_time = last_create
+        #     story_time = datetime.datetime.strptime(
+        #         story[tt_filter.value], self.ALIEN_TIME_FORMAT
+        #     )
+        #     if story_time > last_create:
+        #         if self.valid or self.is_summ_keyword_present(story["description"]):
 
-        for story in stories:
+        #             filtered_stories.append(story)
 
-            story_time = datetime.datetime.strptime(
-                story[tt_filter.value], self.ALIEN_TIME_FORMAT
-            )
-            if story_time > last_create:
-                if self.valid or self.is_summ_keyword_present(story["description"]):
+        #     if story_time > new_last_time:
+        #         new_last_time = story_time
 
-                    filtered_stories.append(story)
-
-            if story_time > new_last_time:
-                new_last_time = story_time
-
-        return filtered_stories, new_last_time
+        # return filtered_stories, new_last_time
 
     def is_summ_keyword_present(self, summary: str):
         # Given the summary check if any keyword is present
@@ -123,71 +100,36 @@ class csa_report:
             w.lower() in summary.lower() for w in self.keywords_i
         )  # for each of the word in description keyword config, check if it exists in summary.
 
-    def get_new_pulse(self):
+    def get_new_alerts(self):
 
-        stories = self.get_sub_pulse()
-        filtered_pulses, new_last_time = self.filter_pulse(
-            stories["results"], self.ALIEN_CREATED, time_type.created
-        )
-        self.ALIEN_CREATED = new_last_time
+        # stories = self.get_sub_pulse()
+        # filtered_pulses, new_last_time = self.filter_pulse(
+        #     stories["results"], self.ALIEN_CREATED, time_type.created
+        # )
+        # self.ALIEN_CREATED = new_last_time
 
-        return filtered_pulses
+        # return filtered_pulses
 
-    def get_modified_pulse(self):
-
-        stories = self.get_sub_pulse()
-        filtered_pulses, new_last_time = self.filter_pulse(
-            stories["results"], self.ALIEN_MODIFIED, time_type.created
-        )
-        self.ALIEN_MODIFIED = new_last_time
-
-        return filtered_pulses
-
-    def generate_new_pulse_message(self, new_story) -> Embed:
+    def generate_new_alert_message(self, new_alerts) -> Embed:
         # Generate new CVE message for sending to slack
         nl = "\n"
         embed = Embed(
-            title=f"🔈 *{new_story['name']}*",
-            description=new_story["description"]
-            if len(new_story["description"]) < 500
-            else new_story["description"][:500] + "...",
+            title=f"🔈 *{new_alerts['name']}*",
+            description=new_alerts["description"]
+            if len(new_alerts["description"]) < 500
+            else new_alerts["description"][:500] + "...",
             timestamp=datetime.datetime.utcnow(),
             color=Color.light_gray(),
         )
         embed.add_field(
-            name=f"📅  *Published*", value=f"{new_story['created']}", inline=True
+            name=f"📅  *Published*", value=f"{new_alerts['created']}", inline=True
         )
         embed.add_field(
-            name=f"📅  *Last Modified*", value=f"{new_story['modified']}", inline=True
-        )
-        embed.add_field(
-            name=f"More Information (_limit to 5_)",
-            value=f"{nl.join(new_story['references'][:5])}",
-            inline=False,
-        )
-
-        return embed
-
-    def generate_mod_pulse_message(self, new_story) -> Embed:
-        # Generate new CVE message for sending to slack
-        nl = "\n"
-        embed = Embed(
-            title=f"🔈 *Updated: {new_story['name']}*",
-            description=new_story["description"]
-            if len(new_story["description"]) < 500
-            else new_story["description"][:500] + "...",
-            timestamp=datetime.datetime.utcnow(),
-            color=Color.light_gray(),
-        )
-        embed.add_field(
-            name=f"📅  *Published*", value=f"{new_story['created']}", inline=True
-        )
-        embed.add_field(
-            name=f"📅  *Last Modified*", value=f"{new_story['modified']}", inline=True
+            name=f"📅  *Last Modified*", value=f"{new_alerts['modified']}", inline=True
         )
         embed.add_field(
             name=f"More Information (_limit to 5_)",
-            value=f"{nl.join(new_story['references'][:5])}",
+            value=f"{nl.join(new_alerts['references'][:5])}",
             inline=False,
         )
 
