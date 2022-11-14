@@ -24,7 +24,7 @@ class csa_report:
         self.PUBLISH_JSON_PATH = join(
             pathlib.Path(__file__).parent.absolute(), "output/record.json"
         )
-        self.CSA_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
+        self.CSA_TIME_FORMAT = "%d %b %Y"
         self.CSA_CREATED = datetime.datetime.now(utc) - datetime.timedelta(days=1)
         self.logger = logging.getLogger("csa-reporter")
 
