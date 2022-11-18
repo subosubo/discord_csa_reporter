@@ -9,7 +9,7 @@ import aiohttp
 import yaml
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from csa import csa_report
-from discord import Embed, HTTPException, RateLimited, Webhook
+from discord import Embed, HTTPException, Webhook
 from keep_alive import keep_alive
 
 #################### LOG CONFIG #########################
@@ -117,14 +117,17 @@ async def itscheckintime():
 
     for alert in new_alerts:
         alert_msg = csa.generate_new_alert_message(alert)
+        print("passed")
         await send_discord_message(alert_msg)
+
+    print("passed")
 
     csa.update_lasttimes()
 
 
 if __name__ == "__main__":
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(itscheckintime, "interval", minutes=5)
+    scheduler.add_job(itscheckintime, "interval", minutes=60)
     scheduler.start()
     print("Press Ctrl+{0} to exit".format("Break" if os.name == "nt" else "C"))
 
