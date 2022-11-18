@@ -7,7 +7,8 @@ from bs4 import BeautifulSoup
 
 import pytz
 import requests
-from discord import Color, Embed
+from discord import Color, Embed, HTTPException
+import os
 
 utc = pytz.UTC
 
@@ -65,7 +66,7 @@ class csa_report:
     ################## GET ALERTS FROM CSA  ####################
 
     def get_alerts(self):
-        
+
         results = []
         try:
             r = requests.get(f"{self.CSA_URL}/singcert/Alerts")
@@ -74,13 +75,15 @@ class csa_report:
                 for elem in soup.select(".sc-card-block"):
                     result = {}
                     result['csa'] = f"{self.CSA_URL}{elem.get('href')}"
-                    result['title']=elem.find(class_="sc-card-title").get_text(" ", strip=True)
-                    result['description']=elem.find("p", class_="sc-card-desc").get_text(" ", strip=True)
+                    result['title'] = elem.find(
+                        class_="sc-card-title").get_text(" ", strip=True)
+                    result['description'] = elem.find(
+                        "p", class_="sc-card-desc").get_text(" ", strip=True)
                     result['created'] = elem.find(
                         "div", class_="sc-card-publish").get_text(
                             " ", strip=True).split(" on ")[1]
                     results.append(result)
-    
+
                 return results
         except (HTTPException, ConnectionError) as e:
             self.logger.error(f"{e}")
