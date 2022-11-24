@@ -5,14 +5,19 @@ import pathlib
 import sys
 from os.path import join
 
+from os.path import join, dirname
+from dotenv import load_dotenv
 import aiohttp
 import yaml
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from csa import csa_report
 from discord import Embed, HTTPException, Webhook
-from keep_alive import keep_alive
+#from keep_alive import keep_alive
 
 #################### LOG CONFIG #########################
+
+dotenv_path = join(dirname(__file__), ".env")
+load_dotenv(dotenv_path)
 
 log = logging.getLogger("csa-reporter")
 log.setLevel(logging.DEBUG)
@@ -120,7 +125,7 @@ async def itscheckintime():
         print("passed")
         await send_discord_message(alert_msg)
 
-    print("passed")
+    #print("passed")
 
     csa.update_lasttimes()
 
