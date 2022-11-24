@@ -12,7 +12,6 @@ import yaml
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from csa import csa_report
 from discord import Embed, HTTPException, Webhook
-#from keep_alive import keep_alive
 
 #################### LOG CONFIG #########################
 
@@ -22,8 +21,9 @@ load_dotenv(dotenv_path)
 log = logging.getLogger("csa-reporter")
 log.setLevel(logging.DEBUG)
 
-formatter = logging.Formatter("%(asctime)s %(levelname)-8s %(message)s",
-                              "%Y-%m-%d %H:%M:%S")
+formatter = logging.Formatter(
+    "%(asctime)s %(levelname)-8s %(message)s", "%Y-%m-%d %H:%M:%S"
+)
 
 # Log to file
 filehandler = logging.FileHandler("csa_reporter.log", "a", "utf-8")
@@ -43,7 +43,8 @@ log.addHandler(streamhandler)
 def load_keywords():
     # Load keywords from config file
     KEYWORDS_CONFIG_PATH = join(
-        pathlib.Path(__file__).parent.absolute(), "config/config.yaml")
+        pathlib.Path(__file__).parent.absolute(), "config/config.yaml"
+    )
     try:
 
         with open(KEYWORDS_CONFIG_PATH, "r") as yaml_file:
@@ -87,13 +88,10 @@ async def sendtowebhook(webhookurl: str, content: Embed):
         try:
             webhook = Webhook.from_url(webhookurl, session=session)
             await webhook.send(embed=content)
-        # except RateLimited(600.0):
-        #    log.debug("ratelimited error")
-        #    os.system("kill 1")
+
         except HTTPException:
             log.debug("http error")
             os.system("kill 1")
-            # await webhook.send(embed=content)
 
 
 #################### MAIN BODY #########################
@@ -125,7 +123,7 @@ async def itscheckintime():
         print("passed")
         await send_discord_message(alert_msg)
 
-    #print("passed")
+    # print("passed")
 
     csa.update_lasttimes()
 
@@ -138,7 +136,6 @@ if __name__ == "__main__":
 
     # Execution will block here until Ctrl+C (Ctrl+Break on Windows) is pressed.
     try:
-        #keep_alive()
         asyncio.get_event_loop().run_forever()
     except (KeyboardInterrupt, SystemExit) as e:
         log.error(f"{e}")
