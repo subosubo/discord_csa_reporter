@@ -27,7 +27,8 @@ f_handler.setLevel(logging.ERROR)
 
 # Create formatters and add it to handlers
 c_format = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
-f_format = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+f_format = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 c_handler.setFormatter(c_format)
 f_handler.setFormatter(f_format)
 
@@ -74,12 +75,12 @@ async def itscheckintime():
         for alert in csa.new_alerts:
             alert_msg = csa.generate_new_alert_message(alert)
             await send_discord_message(alert_msg)
-    
+
     if csa.new_advs:
         for adv in csa.new_advs:
             adv_msg = csa.generate_new_adv_message(adv)
             await send_discord_message(adv_msg)
-    
+
     if csa.new_pubs:
         for pub in csa.new_pubs:
             pub_msg = csa.generate_new_pub_message(pub)
