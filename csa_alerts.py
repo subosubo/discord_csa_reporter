@@ -6,14 +6,13 @@ import sys
 from os.path import join
 from bs4 import BeautifulSoup
 
-import pytz
 import yaml
 import requests
 from discord import Color, Embed, HTTPException
 import os
 
 
-class csa_report:
+class csa_alerts:
     def __init__(self):
 
         self.CSA_URL = "https://www.csa.gov.sg"
@@ -41,7 +40,7 @@ class csa_report:
                 self.keywords = keywords_config["DESCRIPTION_KEYWORDS"]
                 self.product_i = keywords_config["PRODUCT_KEYWORDS_I"]
                 self.product = keywords_config["PRODUCT_KEYWORDS"]
-
+            yaml_file.close()
         except Exception as e:
             self.logger.error(e)
             sys.exit(1)
@@ -58,7 +57,7 @@ class csa_report:
                 self.CSA_CREATED = datetime.datetime.strptime(
                     csa_time["CREATED"], self.CSA_TIME_FORMAT
                 )
-
+            json_file.close()
         except Exception as e:  # If error, just keep the fault date (today - 1 day)
             self.logger.error(f"ERROR: {e}")
 
@@ -75,7 +74,7 @@ class csa_report:
                     },
                     json_file,
                 )
-
+            json_file.close()
         except Exception as e:
             self.logger.error(f"ERROR: {e}")
 
