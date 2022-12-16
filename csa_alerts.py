@@ -142,7 +142,7 @@ class csa_report:
 
         self.new_alerts_title = [new_alert["title"] for new_alert in self.new_alerts]
         print(f"CSA Alerts: {self.new_alerts_title}")
-        self.logger.info(f"CSA Alerts: {self.new_cves_ids}")
+        self.logger.info(f"CSA Alerts: {self.new_alerts_title}")
 
     def generate_new_alert_message(self, new_alerts) -> Embed:
         # Generate new CVE message for sending to discord
