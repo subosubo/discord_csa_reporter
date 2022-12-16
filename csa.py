@@ -192,7 +192,7 @@ class csa:
     ################## GET ADVISORIES FROM CSA  ####################
 
 
-    def get_new_adv(self):
+    def get_new_advs(self):
 
         adv = self.get_list("singcert/Advisories")
         #logging.debug(f"{adv}")
@@ -227,7 +227,7 @@ class csa:
 
     ################## GET PUBLICATION FROM CSA  ####################
 
-    def get_new_pub(self):
+    def get_new_pubs(self):
 
         pub = self.get_list("singcert/Publications")
         #logging.debug(f"{adv}")

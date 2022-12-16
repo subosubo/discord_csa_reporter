@@ -64,17 +64,28 @@ async def sendtowebhook(webhookurl: str, content: Embed):
 #################### MAIN BODY #########################
 async def itscheckintime():
 
-    csaa = csa()
-    csaa.load_lasttimes()
-    csaa.get_new_alerts()
+    csa = csa()
+    csa.load_lasttimes()
+    csa.get_new_alerts()
+    csa.get_new_advs()
+    csa.get_new_pubs()
 
-    if csaa.new_alerts:
-        for alert in csaa.new_alerts:
-            alert_msg = csaa.generate_new_alert_message(alert)
+    if csa.new_alerts:
+        for alert in csa.new_alerts:
+            alert_msg = csa.generate_new_alert_message(alert)
             await send_discord_message(alert_msg)
+    
+    if csa.new_advs:
+        for adv in csa.new_advs:
+            adv_msg = csa.generate_new_adv_message(adv)
+            await send_discord_message(adv_msg)
+    
+    if csa.new_pubs:
+        for pub in csa.new_pubs:
+            pub_msg = csa.generate_new_pub_message(pub)
+            await send_discord_message(pub_msg)
 
-    csaa.update_lasttimes()
-
+    csa.update_lasttimes()
 
 if __name__ == "__main__":
     scheduler = AsyncIOScheduler(timezone="Asia/Singapore")
