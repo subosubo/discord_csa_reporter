@@ -9,10 +9,9 @@ from bs4 import BeautifulSoup
 import yaml
 import requests
 from discord import Color, Embed, HTTPException
-import os
 
 
-class csa:
+class csa_report:
     def __init__(self):
 
         self.CSA_URL = "https://www.csa.gov.sg"
