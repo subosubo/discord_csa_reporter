@@ -73,7 +73,7 @@ async def itscheckintime():
             alert_msg = csaa.generate_new_alert_message(alert)
             await send_discord_message(alert_msg)
 
-    csaa.update_lasttimes()
+    csaa.update_alert_lasttimes()
 
 
 if __name__ == "__main__":
