@@ -16,11 +16,11 @@ class csa_alerts:
     def __init__(self):
 
         self.CSA_URL = "https://www.csa.gov.sg"
-        self.PUBLISH_JSON_PATH = join(
+        self.CSA_JSON_PATH = join(
             pathlib.Path(__file__).parent.absolute(), "output/alert_record.json"
         )
         self.CSA_TIME_FORMAT = "%d %b %Y"
-        self.CSA_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
+        self.ALERT_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
         self.logger = logging.getLogger(__name__)
 
         self.new_alerts = []
@@ -52,10 +52,10 @@ class csa_alerts:
 
         try:
 
-            with open(self.PUBLISH_JSON_PATH, "r") as json_file:
+            with open(self.CSA_JSON_PATH, "r") as json_file:
                 csa_time = json.load(json_file)
-                self.CSA_CREATED = datetime.datetime.strptime(
-                    csa_time["CREATED"], self.CSA_TIME_FORMAT
+                self.ALERT_CREATED = datetime.datetime.strptime(
+                    csa_time["ALERT_CREATED"], self.CSA_TIME_FORMAT
                 )
             json_file.close()
         except Exception as e:  # If error, just keep the fault date (today - 1 day)
@@ -63,14 +63,16 @@ class csa_alerts:
 
     # print(f"Last_Published: {LAST_PUBLISHED}")
 
-    def update_lasttimes(self):
+    def update_alert_lasttimes(self):
         # Save lasttimes in json file
         try:
 
-            with open(self.PUBLISH_JSON_PATH, "w") as json_file:
+            with open(self.CSA_JSON_PATH, "w") as json_file:
                 json.dump(
                     {
-                        "CREATED": self.CSA_CREATED.strftime(self.CSA_TIME_FORMAT),
+                        "ALERT_CREATED": self.ALERT_CREATED.strftime(
+                            self.CSA_TIME_FORMAT
+                        ),
                     },
                     json_file,
                 )
@@ -137,7 +139,9 @@ class csa_alerts:
 
         alerts = self.get_alerts()
         logging.debug(f"{alerts}")
-        self.new_alerts, self.CSA_CREATED = self.filter_alerts(alerts, self.CSA_CREATED)
+        self.new_alerts, self.ALERT_CREATED = self.filter_alerts(
+            alerts, self.ALERT_CREATED
+        )
 
         self.new_alerts_title = [new_alert["title"] for new_alert in self.new_alerts]
         print(f"CSA Alerts: {self.new_alerts_title}")
