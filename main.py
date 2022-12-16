@@ -66,10 +66,10 @@ async def itscheckintime():
 
     csa = csa_report()
     csa.load_lasttimes()
-    new_alerts = csa.get_new_alerts()
+    csa.get_new_alerts()
 
     if csa.new_alerts:
-        for alert in new_alerts:
+        for alert in csa.new_alerts:
             alert_msg = csa.generate_new_alert_message(alert)
             await send_discord_message(alert_msg)
 
