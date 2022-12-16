@@ -12,19 +12,17 @@ import requests
 from discord import Color, Embed, HTTPException
 import os
 
-utc = pytz.UTC
-
 
 class csa_report:
     def __init__(self):
 
         self.CSA_URL = "https://www.csa.gov.sg"
         self.PUBLISH_JSON_PATH = join(
-            pathlib.Path(__file__).parent.absolute(), "output/record.json"
+            pathlib.Path(__file__).parent.absolute(), "output/alert_record.json"
         )
         self.CSA_TIME_FORMAT = "%d %b %Y"
-        self.CSA_CREATED = datetime.datetime.now(utc) - datetime.timedelta(days=1)
-        self.logger = logging.getLogger("csa-reporter")
+        self.CSA_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
+        self.logger = logging.getLogger(__name__)
 
         self.new_alerts = []
         self.new_alerts_title = []
@@ -152,7 +150,7 @@ class csa_report:
             description=new_alerts["description"]
             if len(new_alerts["description"]) < 500
             else new_alerts["description"][:500] + "...",
-            timestamp=datetime.datetime.utcnow(),
+            timestamp=datetime.datetime.now(),
             color=Color.light_gray(),
         )
         embed.add_field(

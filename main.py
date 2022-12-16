@@ -8,33 +8,32 @@ from os.path import join, dirname
 from dotenv import load_dotenv
 import aiohttp
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from csa import csa_report
+from csa_alerts import csa_report
 from discord import Embed, HTTPException, Webhook
-
-#################### LOG CONFIG #########################
 
 dotenv_path = join(dirname(__file__), ".env")
 load_dotenv(dotenv_path)
 
-log = logging.getLogger("csa-reporter")
-log.setLevel(logging.DEBUG)
+#################### LOG CONFIG #########################
 
-formatter = logging.Formatter(
-    "%(asctime)s %(levelname)-8s %(message)s", "%Y-%m-%d %H:%M:%S"
-)
+# Create a custom logger
+logger = logging.getLogger(__name__)
 
-# Log to file
-filehandler = logging.FileHandler("csa_reporter.log", "a", "utf-8")
-filehandler.setLevel(logging.DEBUG)
-filehandler.setFormatter(formatter)
-log.addHandler(filehandler)
+# Create handlers
+c_handler = logging.StreamHandler()
+f_handler = logging.FileHandler("csa_alerts_discord.log", "a", "utf-8")
+c_handler.setLevel(logging.WARNING)
+f_handler.setLevel(logging.ERROR)
 
-# Log to stdout too
-streamhandler = logging.StreamHandler()
-streamhandler.setLevel(logging.INFO)
-streamhandler.setFormatter(formatter)
-log.addHandler(streamhandler)
+# Create formatters and add it to handlers
+c_format = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
+f_format = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+c_handler.setFormatter(c_format)
+f_handler.setFormatter(f_format)
 
+# Add handlers to the logger
+logger.addHandler(c_handler)
+logger.addHandler(f_handler)
 
 #################### SEND MESSAGES #########################
 
@@ -78,8 +77,10 @@ async def itscheckintime():
 
 
 if __name__ == "__main__":
-    scheduler = AsyncIOScheduler()
-    scheduler.add_job(itscheckintime, "interval", minutes=60)
+    scheduler = AsyncIOScheduler(timezone="Asia/Singapore")
+    scheduler.add_job(
+        itscheckintime, "cron", day_of_week="mon-fri", hour="7-18", minute="*/5"
+    )
     scheduler.start()
     print("Press Ctrl+{0} to exit".format("Break" if os.name == "nt" else "C"))
 
@@ -87,5 +88,5 @@ if __name__ == "__main__":
     try:
         asyncio.get_event_loop().run_forever()
     except (KeyboardInterrupt, SystemExit) as e:
-        log.error(f"{e}")
+        logger.warning(e)
         raise e
