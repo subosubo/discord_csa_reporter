@@ -137,6 +137,7 @@ class csa_report:
     def get_new_alerts(self):
 
         alerts = self.get_alerts()
+        print(f"{alerts}")
         self.new_alerts, self.CSA_CREATED = self.filter_alerts(alerts, self.CSA_CREATED)
 
         self.new_alerts_title = [new_alert["title"] for new_alert in self.new_alerts]
