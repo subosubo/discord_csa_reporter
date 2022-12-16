@@ -12,7 +12,7 @@ from discord import Color, Embed, HTTPException
 import os
 
 
-class csa_alerts:
+class csa:
     def __init__(self):
 
         self.CSA_URL = "https://www.csa.gov.sg"
@@ -20,11 +20,19 @@ class csa_alerts:
             pathlib.Path(__file__).parent.absolute(), "output/alert_record.json"
         )
         self.CSA_TIME_FORMAT = "%d %b %Y"
+
         self.ALERT_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
+        self.ADV_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
+        self.PUB_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
+
         self.logger = logging.getLogger(__name__)
 
         self.new_alerts = []
         self.new_alerts_title = []
+        self.new_advs = []
+        self.new_advs_title = []
+        self.new_pubs = []
+        self.new_pubs_title = []
 
         # Load keywords from config file
         self.KEYWORDS_CONFIG_PATH = join(
@@ -55,15 +63,19 @@ class csa_alerts:
             with open(self.CSA_JSON_PATH, "r") as json_file:
                 csa_time = json.load(json_file)
                 self.ALERT_CREATED = datetime.datetime.strptime(
-                    csa_time["ALERT_CREATED"], self.CSA_TIME_FORMAT
+                    csa_time['ALERT_CREATED'], self.CSA_TIME_FORMAT
+                )
+                self.ADV_CREATED = datetime.datetime.strptime(
+                    csa_time['ADV_CREATED'], self.CSA_TIME_FORMAT
+                )
+                self.PUB_CREATED = datetime.datetime.strptime(
+                    csa_time['PUB_CREATED'], self.CSA_TIME_FORMAT
                 )
             json_file.close()
         except Exception as e:  # If error, just keep the fault date (today - 1 day)
             self.logger.error(f"ERROR: {e}")
 
-    # print(f"Last_Published: {LAST_PUBLISHED}")
-
-    def update_alert_lasttimes(self):
+    def update_lasttimes(self):
         # Save lasttimes in json file
         try:
 
@@ -73,20 +85,26 @@ class csa_alerts:
                         "ALERT_CREATED": self.ALERT_CREATED.strftime(
                             self.CSA_TIME_FORMAT
                         ),
+                        "ADV_CREATED": self.ALERT_CREATED.strftime(
+                            self.CSA_TIME_FORMAT
+                        ),
+                        "PUB_CREATED": self.ALERT_CREATED.strftime(
+                            self.CSA_TIME_FORMAT
+                        )
                     },
                     json_file,
                 )
             json_file.close()
         except Exception as e:
             self.logger.error(f"ERROR: {e}")
-
-    ################## GET ALERTS FROM CSA  ####################
-
-    def get_alerts(self):
+    
+    ################## FILTER FOR PUBLISH  ####################
+    
+    def get_list(self, subdomain):
 
         results = []
         try:
-            r = requests.get(f"{self.CSA_URL}/singcert/Alerts")
+            r = requests.get(f"{self.CSA_URL}/{subdomain}")
             if r.status_code == 200:
                 soup = BeautifulSoup(r.text, "lxml")
                 for elem in soup.select(".sc-card-block"):
@@ -108,25 +126,26 @@ class csa_alerts:
                 return results
         except (HTTPException, ConnectionError) as e:
             self.logger.error(f"{e}")
-            os.system("kill 1")
+            sys.exit(1)
+            #os.system("kill 1")
 
-    def filter_alerts(self, alerts: list, last_create: datetime.datetime):
+    def filterlist(self, listobj: list, last_create: datetime.datetime):
 
-        filtered_alerts = []
+        filtered_objlist = []
         new_last_time = last_create
 
-        for alert in alerts:
-            alert_time = datetime.datetime.strptime(
-                alert["created"], self.CSA_TIME_FORMAT
+        for obj in listobj:
+            obj_time = datetime.datetime.strptime(
+                obj["created"], self.CSA_TIME_FORMAT
             )
-            if alert_time > last_create:
-                if self.valid or self.is_summ_keyword_present(alert["description"]):
-                    filtered_alerts.append(alert)
+            if obj_time > last_create:
+                if self.valid or self.is_summ_keyword_present(obj["description"]):
+                    filtered_objlist.append(obj)
 
-            if alert_time > new_last_time:
-                new_last_time = alert_time
+            if obj_time > new_last_time:
+                new_last_time = obj_time
 
-        return filtered_alerts, new_last_time
+        return filtered_objlist, new_last_time
 
     def is_summ_keyword_present(self, summary: str):
         # Given the summary check if any keyword is present
@@ -135,11 +154,13 @@ class csa_alerts:
             w.lower() in summary.lower() for w in self.keywords_i
         )  # for each of the word in description keyword config, check if it exists in summary.
 
+    ################## GET ALERTS FROM CSA  ####################
+
     def get_new_alerts(self):
 
-        alerts = self.get_alerts()
-        logging.debug(f"{alerts}")
-        self.new_alerts, self.ALERT_CREATED = self.filter_alerts(
+        alerts = self.get_list("singcert/Alerts")
+        #logging.debug(f"{alerts}")
+        self.new_alerts, self.ALERT_CREATED = self.filterlist(
             alerts, self.ALERT_CREATED
         )
 
@@ -163,6 +184,77 @@ class csa_alerts:
         embed.add_field(
             name=f"More Information",
             value=f"{new_alerts['csa']}",
+            inline=False,
+        )
+
+        return embed
+
+    ################## GET ADVISORIES FROM CSA  ####################
+
+
+    def get_new_adv(self):
+
+        adv = self.get_list("singcert/Advisories")
+        #logging.debug(f"{adv}")
+        self.new_advs, self.ADV_CREATED = self.filterlist(
+            adv, self.ADV_CREATED
+        )
+
+        self.new_advs_title = [new_adv["title"] for new_adv in self.new_advs]
+        print(f"CSA Advisories: {self.new_advs_title}")
+        self.logger.info(f"CSA Advisories: {self.new_advs_title}")
+
+    def generate_new_adv_message(self, new_advs) -> Embed:
+        # Generate new CVE message for sending to discord
+        embed = Embed(
+            title=f"🔈 *{new_advs['title']}*",
+            description=new_advs["description"]
+            if len(new_advs["description"]) < 500
+            else new_advs["description"][:500] + "...",
+            timestamp=datetime.datetime.now(),
+            color=Color.light_gray(),
+        )
+        embed.add_field(
+            name=f"📅  *Published*", value=f"{new_advs['created']}", inline=True
+        )
+        embed.add_field(
+            name=f"More Information",
+            value=f"{new_advs['csa']}",
+            inline=False,
+        )
+
+        return embed
+
+    ################## GET PUBLICATION FROM CSA  ####################
+
+    def get_new_pub(self):
+
+        pub = self.get_list("singcert/Publications")
+        #logging.debug(f"{adv}")
+        self.new_pub, self.PUB_CREATED = self.filterlist(
+            pub, self.PUB_CREATED
+        )
+
+        self.new_pubs_title = [new_pub["title"] for new_pub in self.new_pubs]
+        print(f"CSA Publications: {self.new_pubs_title}")
+        self.logger.info(f"CSA Publications: {self.new_pubs_title}")
+
+    def generate_new_pub_message(self, new_pubs) -> Embed:
+        # Generate new CVE message for sending to discord
+        embed = Embed(
+            title=f"🔈 *{new_pubs['title']}*",
+            description=new_pubs["description"]
+            if len(new_pubs["description"]) < 500
+            else new_pubs["description"][:500] + "...",
+            timestamp=datetime.datetime.now(),
+            color=Color.light_gray(),
+        )
+        embed.add_field(
+            name=f"📅  *Published*", value=f"{new_pubs['created']}", inline=True
+        )
+        embed.add_field(
+            name=f"More Information",
+            value=f"{new_pubs['csa']}",
             inline=False,
         )
 

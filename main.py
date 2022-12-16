@@ -8,7 +8,7 @@ from os.path import join, dirname
 from dotenv import load_dotenv
 import aiohttp
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from csa_alerts import csa_alerts
+from csa import csa
 from discord import Embed, HTTPException, Webhook
 
 dotenv_path = join(dirname(__file__), ".env")
@@ -64,7 +64,7 @@ async def sendtowebhook(webhookurl: str, content: Embed):
 #################### MAIN BODY #########################
 async def itscheckintime():
 
-    csaa = csa_alerts()
+    csaa = csa()
     csaa.load_lasttimes()
     csaa.get_new_alerts()
 
@@ -73,7 +73,7 @@ async def itscheckintime():
             alert_msg = csaa.generate_new_alert_message(alert)
             await send_discord_message(alert_msg)
 
-    csaa.update_alert_lasttimes()
+    csaa.update_lasttimes()
 
 
 if __name__ == "__main__":
