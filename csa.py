@@ -72,7 +72,8 @@ class csa:
                     csa_time['PUB_CREATED'], self.CSA_TIME_FORMAT
                 )
             json_file.close()
-        except Exception as e:  # If error, just keep the fault date (today - 1 day)
+        # If error, just keep the fault date (today - 1 day)
+        except Exception as e:
             self.logger.error(f"ERROR: {e}")
 
     def update_lasttimes(self):
@@ -97,9 +98,9 @@ class csa:
             json_file.close()
         except Exception as e:
             self.logger.error(f"ERROR: {e}")
-    
+
     ################## FILTER FOR PUBLISH  ####################
-    
+
     def get_list(self, subdomain):
 
         results = []
@@ -127,7 +128,7 @@ class csa:
         except (HTTPException, ConnectionError) as e:
             self.logger.error(f"{e}")
             sys.exit(1)
-            #os.system("kill 1")
+            # os.system("kill 1")
 
     def filterlist(self, listobj: list, last_create: datetime.datetime):
 
@@ -159,12 +160,13 @@ class csa:
     def get_new_alerts(self):
 
         alerts = self.get_list("singcert/Alerts")
-        #logging.debug(f"{alerts}")
+        # logging.debug(f"{alerts}")
         self.new_alerts, self.ALERT_CREATED = self.filterlist(
             alerts, self.ALERT_CREATED
         )
 
-        self.new_alerts_title = [new_alert["title"] for new_alert in self.new_alerts]
+        self.new_alerts_title = [new_alert["title"]
+                                 for new_alert in self.new_alerts]
         print(f"CSA Alerts: {self.new_alerts_title}")
         self.logger.info(f"CSA Alerts: {self.new_alerts_title}")
 
@@ -191,11 +193,10 @@ class csa:
 
     ################## GET ADVISORIES FROM CSA  ####################
 
-
     def get_new_advs(self):
 
         adv = self.get_list("singcert/Advisories")
-        #logging.debug(f"{adv}")
+        # logging.debug(f"{adv}")
         self.new_advs, self.ADV_CREATED = self.filterlist(
             adv, self.ADV_CREATED
         )
@@ -230,7 +231,7 @@ class csa:
     def get_new_pubs(self):
 
         pub = self.get_list("singcert/Publications")
-        #logging.debug(f"{adv}")
+        # logging.debug(f"{adv}")
         self.new_pub, self.PUB_CREATED = self.filterlist(
             pub, self.PUB_CREATED
         )
