@@ -17,7 +17,7 @@ class csa:
 
         self.CSA_URL = "https://www.csa.gov.sg"
         self.CSA_JSON_PATH = join(
-            pathlib.Path(__file__).parent.absolute(), "output/alert_record.json"
+            pathlib.Path(__file__).parent.absolute(), "output/record.json"
         )
         self.CSA_TIME_FORMAT = "%d %b %Y"
 
