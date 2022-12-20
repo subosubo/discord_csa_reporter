@@ -71,27 +71,24 @@ async def itscheckintime():
     csa.get_new_advs()
     csa.get_new_pubs()
 
-    if csa.new_alerts:
-        for alert in csa.new_alerts:
-            alert_msg = csa.generate_new_alert_message(alert)
-            await send_discord_message(alert_msg)
+    for alert in csa.new_alerts:
+        alert_msg = csa.generate_new_alert_message(alert)
+        await send_discord_message(alert_msg)
 
-    if csa.new_advs:
-        for adv in csa.new_advs:
-            adv_msg = csa.generate_new_adv_message(adv)
-            await send_discord_message(adv_msg)
+    for adv in csa.new_advs:
+        adv_msg = csa.generate_new_adv_message(adv)
+        await send_discord_message(adv_msg)
 
-    if csa.new_pubs:
-        for pub in csa.new_pubs:
-            pub_msg = csa.generate_new_pub_message(pub)
-            await send_discord_message(pub_msg)
+    for pub in csa.new_pubs:
+        pub_msg = csa.generate_new_pub_message(pub)
+        await send_discord_message(pub_msg)
 
     csa.update_lasttimes()
 
 if __name__ == "__main__":
     scheduler = AsyncIOScheduler(timezone="Asia/Singapore")
     scheduler.add_job(
-        itscheckintime, "cron", day_of_week="mon-fri", hour="8-18", minute="*/5"
+        itscheckintime, "cron", day_of_week="mon-fri", hour="8-18/1"
     )
     scheduler.start()
     print("Press Ctrl+{0} to exit".format("Break" if os.name == "nt" else "C"))
