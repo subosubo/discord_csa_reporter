@@ -177,7 +177,7 @@ class csa_report:
             if len(new_alerts["description"]) < 500
             else new_alerts["description"][:500] + "...",
             timestamp=datetime.datetime.now(),
-            color=Color.light_gray(),
+            color=Color.brand_red(),
         )
         embed.add_field(
             name=f"📅  *Published*", value=f"{new_alerts['created']}", inline=True
@@ -212,7 +212,7 @@ class csa_report:
             if len(new_advs["description"]) < 500
             else new_advs["description"][:500] + "...",
             timestamp=datetime.datetime.now(),
-            color=Color.light_gray(),
+            color=Color.blue(),
         )
         embed.add_field(
             name=f"📅  *Published*", value=f"{new_advs['created']}", inline=True
@@ -247,7 +247,7 @@ class csa_report:
             if len(new_pubs["description"]) < 500
             else new_pubs["description"][:500] + "...",
             timestamp=datetime.datetime.now(),
-            color=Color.light_gray(),
+            color=Color.yellow(),
         )
         embed.add_field(
             name=f"📅  *Published*", value=f"{new_pubs['created']}", inline=True
