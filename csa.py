@@ -231,7 +231,7 @@ class csa_report:
 
         pub = self.get_list("singcert/Publications")
         # logging.debug(f"{adv}")
-        self.new_pub, self.PUB_CREATED = self.filterlist(
+        self.new_pubs, self.PUB_CREATED = self.filterlist(
             pub, self.PUB_CREATED
         )
 
