@@ -85,10 +85,10 @@ class csa_report:
                         "ALERT_CREATED": self.ALERT_CREATED.strftime(
                             self.CSA_TIME_FORMAT
                         ),
-                        "ADV_CREATED": self.ALERT_CREATED.strftime(
+                        "ADV_CREATED": self.ADV_CREATED.strftime(
                             self.CSA_TIME_FORMAT
                         ),
-                        "PUB_CREATED": self.ALERT_CREATED.strftime(
+                        "PUB_CREATED": self.PUB_CREATED.strftime(
                             self.CSA_TIME_FORMAT
                         )
                     },
