@@ -16,25 +16,39 @@ load_dotenv(dotenv_path)
 
 #################### LOG CONFIG #########################
 
-# Create a custom logger
+# create logger
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
-# Create handlers
-c_handler = logging.StreamHandler()
-f_handler = logging.FileHandler("csa_alerts_discord.log", "a", "utf-8")
-c_handler.setLevel(logging.WARNING)
-f_handler.setLevel(logging.ERROR)
 
-# Create formatters and add it to handlers
-c_format = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
-f_format = logging.Formatter(
-    "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-c_handler.setFormatter(c_format)
-f_handler.setFormatter(f_format)
+# create console handler and set level to debug
+consolelog = logging.StreamHandler()
+consolelog.setLevel(logging.INFO)
 
-# Add handlers to the logger
-logger.addHandler(c_handler)
-logger.addHandler(f_handler)
+# create formatter
+formatter = logging.Formatter(
+    '%(asctime)s - %(levelname)s - %(message)s')
+
+# add formatter to ch
+consolelog.setFormatter(formatter)
+
+# create file handler and set level to debug
+log_dir = Path(__file__).parent.absolute()
+log_dir.mkdir(parents=True, exist_ok=True)
+filelog = logging.FileHandler(
+    log_dir / 'csa_singcert_logfile.log', "a", "utf-8")
+filelog.setLevel(logging.DEBUG)
+
+# create formatter
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# add formatter to fh
+filelog.setFormatter(formatter)
+
+# add ch and fh to logger
+logger.addHandler(consolelog)
+logger.addHandler(filelog)
 
 #################### SEND MESSAGES #########################
 

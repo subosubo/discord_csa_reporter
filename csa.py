@@ -24,7 +24,8 @@ class csa_report:
         self.ADV_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
         self.PUB_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
 
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger("__main__")
+        self.logger.setLevel(logging.INFO)
 
         self.new_alerts = []
         self.new_alerts_title = []
