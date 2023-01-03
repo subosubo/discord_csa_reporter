@@ -3,6 +3,7 @@ import logging
 import os
 from os.path import join
 from time import sleep
+from pathlib import Path
 
 from os.path import join, dirname
 from dotenv import load_dotenv
