@@ -60,7 +60,7 @@ async def send_discord_message(message: Embed):
     discord_webhok_url = os.getenv("DISCORD_WEBHOOK_URL")
 
     if not discord_webhok_url:
-        print("DISCORD_WEBHOOK_URL wasn't configured in the secrets!")
+        logger.error("DISCORD_WEBHOOK_URL wasn't configured in the secrets!")
         return
 
     await sendtowebhook(webhookurl=discord_webhok_url, content=message)
@@ -106,7 +106,8 @@ if __name__ == "__main__":
         itscheckintime, "cron", day_of_week="mon-fri", hour="8-18/1"
     )
     scheduler.start()
-    print("Press Ctrl+{0} to exit".format("Break" if os.name == "nt" else "C"))
+    logger.info(
+        "Press Ctrl+{0} to exit".format("Break" if os.name == "nt" else "C"))
 
     # Execution will block here until Ctrl+C (Ctrl+Break on Windows) is pressed.
     try:

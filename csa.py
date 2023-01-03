@@ -42,7 +42,7 @@ class csa_report:
 
             with open(self.KEYWORDS_CONFIG_PATH, "r") as yaml_file:
                 keywords_config = yaml.safe_load(yaml_file)
-                print(f"Loaded keywords: {keywords_config}")
+                self.logger.info(f"Loaded keywords: {keywords_config}")
                 self.valid = keywords_config["ALL_VALID"]
                 self.keywords_i = keywords_config["DESCRIPTION_KEYWORDS_I"]
                 self.keywords = keywords_config["DESCRIPTION_KEYWORDS"]
@@ -167,7 +167,6 @@ class csa_report:
 
         self.new_alerts_title = [new_alert["title"]
                                  for new_alert in self.new_alerts]
-        print(f"CSA Alerts: {self.new_alerts_title}")
         self.logger.info(f"CSA Alerts: {self.new_alerts_title}")
 
     def generate_new_alert_message(self, new_alerts) -> Embed:
@@ -202,7 +201,6 @@ class csa_report:
         )
 
         self.new_advs_title = [new_adv["title"] for new_adv in self.new_advs]
-        print(f"CSA Advisories: {self.new_advs_title}")
         self.logger.info(f"CSA Advisories: {self.new_advs_title}")
 
     def generate_new_adv_message(self, new_advs) -> Embed:
@@ -237,7 +235,6 @@ class csa_report:
         )
 
         self.new_pubs_title = [new_pub["title"] for new_pub in self.new_pubs]
-        print(f"CSA Publications: {self.new_pubs_title}")
         self.logger.info(f"CSA Publications: {self.new_pubs_title}")
 
     def generate_new_pub_message(self, new_pubs) -> Embed:
