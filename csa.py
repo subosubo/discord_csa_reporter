@@ -160,7 +160,6 @@ class csa_report:
     def get_new_alerts(self):
 
         alerts = self.get_list("singcert/Alerts")
-        # logging.debug(f"{alerts}")
         self.new_alerts, self.ALERT_CREATED = self.filterlist(
             alerts, self.ALERT_CREATED
         )
@@ -195,7 +194,6 @@ class csa_report:
     def get_new_advs(self):
 
         adv = self.get_list("singcert/Advisories")
-        # logging.debug(f"{adv}")
         self.new_advs, self.ADV_CREATED = self.filterlist(
             adv, self.ADV_CREATED
         )
@@ -229,7 +227,6 @@ class csa_report:
     def get_new_pubs(self):
 
         pub = self.get_list("singcert/Publications")
-        # logging.debug(f"{adv}")
         self.new_pubs, self.PUB_CREATED = self.filterlist(
             pub, self.PUB_CREATED
         )
