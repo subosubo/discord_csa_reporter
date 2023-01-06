@@ -18,7 +18,7 @@ class csa_report:
         self.CSA_JSON_PATH = join(
             pathlib.Path(__file__).parent.absolute(), "output/record.json"
         )
-        self.CSA_TIME_FORMAT = "%d %b %Y"
+        self.CSA_TIME_FORMAT = "%d %b %Y %H:%M:%S"
 
         self.ALERT_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
         self.ADV_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
@@ -137,7 +137,7 @@ class csa_report:
 
         for obj in listobj:
             obj_time = datetime.datetime.strptime(
-                obj["created"], self.CSA_TIME_FORMAT
+                f"{obj['created']} {datetime.datetime.now().strftime('%H:%M:%S')}", self.CSA_TIME_FORMAT
             )
             if obj_time > last_create:
                 if self.valid or self.is_summ_keyword_present(obj["description"]):
