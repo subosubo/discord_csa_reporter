@@ -139,6 +139,7 @@ class csa_report:
             obj_time = datetime.datetime.strptime(
                 f"{obj['created']} {datetime.datetime.now().strftime('%H:%M:%S')}", self.CSA_TIME_FORMAT
             )
+            print(f"{obj_time}/{last_create}")
             if obj_time > last_create:
                 if self.valid or self.is_summ_keyword_present(obj["description"]):
                     filtered_objlist.append(obj)
