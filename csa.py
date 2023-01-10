@@ -186,7 +186,7 @@ class csa_report:
 
         alerts = self.get_list("singcert/Alerts")
         self.new_alerts, self.ALERT_CREATED = self.filterlist(
-            alerts.reverse(), self.ALERT_CREATED, self.tup_type[0]
+            alerts, self.ALERT_CREATED, self.tup_type[0]
         )
 
         self.new_alerts_title = [new_alert["title"]
@@ -220,7 +220,7 @@ class csa_report:
 
         adv = self.get_list("singcert/Advisories")
         self.new_advs, self.ADV_CREATED = self.filterlist(
-            adv.reverse(), self.ADV_CREATED, self.tup_type[1]
+            adv, self.ADV_CREATED, self.tup_type[1]
         )
 
         self.new_advs_title = [new_adv["title"] for new_adv in self.new_advs]
@@ -253,7 +253,7 @@ class csa_report:
 
         pub = self.get_list("singcert/Publications")
         self.new_pubs, self.PUB_CREATED = self.filterlist(
-            pub.reverse(), self.PUB_CREATED, self.tup_type[2]
+            pub, self.PUB_CREATED, self.tup_type[2]
         )
 
         self.new_pubs_title = [new_pub["title"] for new_pub in self.new_pubs]
