@@ -164,11 +164,11 @@ class csa_report:
             if obj_time > new_last_time:
                 new_last_time = obj_time
                 if type == self.tup_type[0]:
-                    self.ALERT_LAST_TITLE = obj['title']
+                    self.last_title_dict['ALERT_LAST_TITLE'] = obj['title']
                 elif type == self.tup_type[1]:
-                    self.ADV_LAST_TITLE = obj['title']
+                    self.last_title_dict['ADV_LAST_TITLE'] = obj['title']
                 elif type == self.tup_type[2]:
-                    self.PUB_LAST_TITLE = obj['title']
+                    self.last_title_dict['PUB_LAST_TITLE'] = obj['title']
 
         return filtered_objlist, new_last_time
 
