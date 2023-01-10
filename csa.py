@@ -151,6 +151,7 @@ class csa_report:
 
         for obj in listobj:
             print(f"{obj}")
+            print(f"{self.last_title_dict}")
             obj_time = datetime.datetime.strptime(
                 f"{obj['created']} {datetime.datetime.now().strftime('%H:%M:%S')}", self.CSA_TIME_FORMAT
             )
