@@ -86,10 +86,6 @@ async def itscheckintime():
     csa.get_new_advs()
     csa.get_new_pubs()
 
-    csa.new_alerts.reverse()
-    csa.new_advs.reverse()
-    csa.new_pubs.reverse()
-
     for alert in csa.new_alerts:
         alert_msg = csa.generate_new_alert_message(alert)
         await send_discord_message(alert_msg)
