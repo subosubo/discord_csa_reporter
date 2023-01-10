@@ -67,12 +67,12 @@ class csa_report:
 
             with open(self.CSA_JSON_PATH, "r") as json_file:
                 csa_record = json.load(json_file)
-                self.last_title_dict['ALERT_LAST_TITLE'] = csa_record(
-                    'ALERT_LAST_TITLE')
-                self.last_title_dict['ADV_LAST_TITLE'] = csa_record(
-                    'ADV_LAST_TITLE')
-                self.last_title_dict['PUB_LAST_TITLE'] = csa_record(
-                    'PUB_LAST_TITLE')
+                self.last_title_dict['ALERT_LAST_TITLE'] = csa_record[
+                    'ALERT_LAST_TITLE']
+                self.last_title_dict['ADV_LAST_TITLE'] = csa_record[
+                    'ADV_LAST_TITLE']
+                self.last_title_dict['PUB_LAST_TITLE'] = csa_record[
+                    'PUB_LAST_TITLE']
                 self.ALERT_CREATED = datetime.datetime.strptime(
                     csa_record['ALERT_CREATED'], self.CSA_TIME_FORMAT
                 )
