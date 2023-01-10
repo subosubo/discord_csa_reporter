@@ -150,6 +150,7 @@ class csa_report:
         new_last_time = last_create
 
         for obj in listobj:
+            print(f"{obj}")
             obj_time = datetime.datetime.strptime(
                 f"{obj['created']} {datetime.datetime.now().strftime('%H:%M:%S')}", self.CSA_TIME_FORMAT
             )
