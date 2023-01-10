@@ -146,23 +146,18 @@ class csa_report:
         new_last_time = last_create
 
         for obj in listobj:
-            print(f"{obj}")
-            print(f"{self.last_title_dict}")
             obj_time = datetime.datetime.strptime(
                 f"{obj['created']} {datetime.datetime.now().strftime('%H:%M:%S')}", self.CSA_TIME_FORMAT
             )
 
             if (obj_time > last_create) and (obj['title'] in self.last_title_dict.values()):
-                print("continue")
                 continue
 
             if obj_time > last_create:
-                print("in 1")
                 if self.valid or self.is_summ_keyword_present(obj["description"]):
                     filtered_objlist.append(obj)
 
             if obj_time > new_last_time:
-                print("in 2")
                 new_last_time = obj_time
                 if type == self.tup_type[0]:
                     self.last_title_dict['ALERT_LAST_TITLE'] = obj['title']
