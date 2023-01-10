@@ -85,7 +85,7 @@ class csa_report:
             json_file.close()
         # If error, just keep the fault date (today - 1 day)
         except Exception as e:
-            self.logger.error(f"ERROR: {e}")
+            self.logger.error(f"ERROR-1: {e}")
 
     def update_lasttimes(self):
         # Save lasttimes in json file
@@ -111,7 +111,7 @@ class csa_report:
                 )
             json_file.close()
         except Exception as e:
-            self.logger.error(f"ERROR: {e}")
+            self.logger.error(f"ERROR-2: {e}")
 
     ################## FILTER FOR PUBLISH  ####################
 
