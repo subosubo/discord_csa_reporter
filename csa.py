@@ -24,6 +24,9 @@ class csa_report:
         self.ADV_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
         self.PUB_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
 
+        self.last_title_dict = {'ALERT_LAST_TITLE': '',
+                                'ADV_LAST_TITLE': '', 'PUB_LAST_TITLE': ''}
+
         self.logger = logging.getLogger("__main__")
         self.logger.setLevel(logging.INFO)
 
@@ -33,6 +36,8 @@ class csa_report:
         self.new_advs_title = []
         self.new_pubs = []
         self.new_pubs_title = []
+
+        self.tup_type = ("ALERTS", "ADVISORIES", "PUBLICATIONS")
 
         # Load keywords from config file
         self.KEYWORDS_CONFIG_PATH = join(
@@ -61,15 +66,21 @@ class csa_report:
         try:
 
             with open(self.CSA_JSON_PATH, "r") as json_file:
-                csa_time = json.load(json_file)
+                csa_record = json.load(json_file)
+                self.last_title_dict['ALERT_LAST_TITLE'] = csa_record(
+                    'ALERT_LAST_TITLE')
+                self.last_title_dict['ADV_LAST_TITLE'] = csa_record(
+                    'ADV_LAST_TITLE')
+                self.last_title_dict['PUB_LAST_TITLE'] = csa_record(
+                    'PUB_LAST_TITLE')
                 self.ALERT_CREATED = datetime.datetime.strptime(
-                    csa_time['ALERT_CREATED'], self.CSA_TIME_FORMAT
+                    csa_record['ALERT_CREATED'], self.CSA_TIME_FORMAT
                 )
                 self.ADV_CREATED = datetime.datetime.strptime(
-                    csa_time['ADV_CREATED'], self.CSA_TIME_FORMAT
+                    csa_record['ADV_CREATED'], self.CSA_TIME_FORMAT
                 )
                 self.PUB_CREATED = datetime.datetime.strptime(
-                    csa_time['PUB_CREATED'], self.CSA_TIME_FORMAT
+                    csa_record['PUB_CREATED'], self.CSA_TIME_FORMAT
                 )
             json_file.close()
         # If error, just keep the fault date (today - 1 day)
@@ -86,12 +97,15 @@ class csa_report:
                         "ALERT_CREATED": self.ALERT_CREATED.strftime(
                             self.CSA_TIME_FORMAT
                         ),
+                        "ALERT_LAST_TITLE": self.last_title_dict['ALERT_LAST_TITLE'],
                         "ADV_CREATED": self.ADV_CREATED.strftime(
                             self.CSA_TIME_FORMAT
                         ),
+                        "ADV_LAST_TITLE": self.last_title_dict['ADV_LAST_TITLE'],
                         "PUB_CREATED": self.PUB_CREATED.strftime(
                             self.CSA_TIME_FORMAT
-                        )
+                        ),
+                        "PUB_LAST_TITLE": self.last_title_dict['PUB_LAST_TITLE']
                     },
                     json_file,
                 )
@@ -130,7 +144,7 @@ class csa_report:
             sys.exit(1)
             # os.system("kill 1")
 
-    def filterlist(self, listobj: list, last_create: datetime.datetime):
+    def filterlist(self, listobj: list, last_create: datetime.datetime, type: str):
 
         filtered_objlist = []
         new_last_time = last_create
@@ -139,13 +153,22 @@ class csa_report:
             obj_time = datetime.datetime.strptime(
                 f"{obj['created']} {datetime.datetime.now().strftime('%H:%M:%S')}", self.CSA_TIME_FORMAT
             )
-            print(f"{obj_time}/{last_create}")
+
+            if (obj_time > last_create) and (obj['title'] in self.last_title_dict.values()):
+                continue
+
             if obj_time > last_create:
                 if self.valid or self.is_summ_keyword_present(obj["description"]):
                     filtered_objlist.append(obj)
 
             if obj_time > new_last_time:
                 new_last_time = obj_time
+                if type == self.tup_type[0]:
+                    self.ALERT_LAST_TITLE = obj['title']
+                elif type == self.tup_type[1]:
+                    self.ADV_LAST_TITLE = obj['title']
+                elif type == self.tup_type[2]:
+                    self.PUB_LAST_TITLE = obj['title']
 
         return filtered_objlist, new_last_time
 
@@ -162,7 +185,7 @@ class csa_report:
 
         alerts = self.get_list("singcert/Alerts")
         self.new_alerts, self.ALERT_CREATED = self.filterlist(
-            alerts, self.ALERT_CREATED
+            alerts, self.ALERT_CREATED, self.tup_type[0]
         )
 
         self.new_alerts_title = [new_alert["title"]
@@ -196,7 +219,7 @@ class csa_report:
 
         adv = self.get_list("singcert/Advisories")
         self.new_advs, self.ADV_CREATED = self.filterlist(
-            adv, self.ADV_CREATED
+            adv, self.ADV_CREATED, self.tup_type[1]
         )
 
         self.new_advs_title = [new_adv["title"] for new_adv in self.new_advs]
@@ -229,7 +252,7 @@ class csa_report:
 
         pub = self.get_list("singcert/Publications")
         self.new_pubs, self.PUB_CREATED = self.filterlist(
-            pub, self.PUB_CREATED
+            pub, self.PUB_CREATED, self.tup_type[2]
         )
 
         self.new_pubs_title = [new_pub["title"] for new_pub in self.new_pubs]
