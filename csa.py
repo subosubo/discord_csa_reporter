@@ -146,12 +146,13 @@ class csa_report:
         new_last_time = last_create
 
         for obj in listobj:
+            # if first element title is found in any of the latest title, it will break out of loop since there's nothing to update
+            if (obj['title'] in self.last_title_dict.values()):
+                break
+
             obj_time = datetime.datetime.strptime(
                 f"{obj['created']} {datetime.datetime.now().strftime('%H:%M:%S')}", self.CSA_TIME_FORMAT
             )
-
-            if (obj_time > last_create) and (obj['title'] in self.last_title_dict.values()):
-                continue
 
             if obj_time > last_create:
                 if self.valid or self.is_summ_keyword_present(obj["description"]):
