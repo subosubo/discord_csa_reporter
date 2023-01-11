@@ -24,8 +24,8 @@ class csa_report:
         self.ADV_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
         self.PUB_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
 
-        self.last_title_dict = {'ALERT_LAST_TITLE': '',
-                                'ADV_LAST_TITLE': '', 'PUB_LAST_TITLE': ''}
+        self.last_title_dict = {'ALERT_LATEST_TITLE': '',
+                                'ADV_LATEST_TITLE': '', 'PUB_LATEST_TITLE': ''}
 
         self.logger = logging.getLogger("__main__")
         self.logger.setLevel(logging.INFO)
@@ -67,9 +67,9 @@ class csa_report:
 
             with open(self.CSA_JSON_PATH, "r") as json_file:
                 csa_record = json.load(json_file)
-                self.last_title_dict['ALERT_LAST_TITLE'] = csa_record['ALERT_LAST_TITLE']
-                self.last_title_dict['ADV_LAST_TITLE'] = csa_record['ADV_LAST_TITLE']
-                self.last_title_dict['PUB_LAST_TITLE'] = csa_record['PUB_LAST_TITLE']
+                self.last_title_dict['ALERT_LATEST_TITLE'] = csa_record['ALERT_LATEST_TITLE']
+                self.last_title_dict['ADV_LATEST_TITLE'] = csa_record['ADV_LATEST_TITLE']
+                self.last_title_dict['PUB_LATEST_TITLE'] = csa_record['PUB_LATEST_TITLE']
                 self.ALERT_CREATED = datetime.datetime.strptime(
                     csa_record['ALERT_CREATED'], self.CSA_TIME_FORMAT)
                 self.ADV_CREATED = datetime.datetime.strptime(
@@ -93,15 +93,15 @@ class csa_report:
                         "ALERT_CREATED": self.ALERT_CREATED.strftime(
                             self.CSA_TIME_FORMAT
                         ),
-                        "ALERT_LAST_TITLE": self.last_title_dict['ALERT_LAST_TITLE'],
+                        "ALERT_LATEST_TITLE": self.last_title_dict['ALERT_LATEST_TITLE'],
                         "ADV_CREATED": self.ADV_CREATED.strftime(
                             self.CSA_TIME_FORMAT
                         ),
-                        "ADV_LAST_TITLE": self.last_title_dict['ADV_LAST_TITLE'],
+                        "ADV_LATEST_TITLE": self.last_title_dict['ADV_LATEST_TITLE'],
                         "PUB_CREATED": self.PUB_CREATED.strftime(
                             self.CSA_TIME_FORMAT
                         ),
-                        "PUB_LAST_TITLE": self.last_title_dict['PUB_LAST_TITLE']
+                        "PUB_LATEST_TITLE": self.last_title_dict['PUB_LATEST_TITLE']
                     },
                     json_file,
                 )
@@ -144,28 +144,34 @@ class csa_report:
 
         filtered_objlist = []
         new_last_time = last_create
+        first_article = True
+        first_title = ''
 
         for obj in listobj:
+            if first_article:
+                first_title = obj['title']
+                first_article = False
+
             # if first element title is found in any of the latest title, it will break out of loop since there's nothing to update
             if (obj['title'] in self.last_title_dict.values()):
                 break
 
             obj_time = datetime.datetime.strptime(
-                f"{obj['created']} {datetime.datetime.now().strftime('%H:%M:%S')}", self.CSA_TIME_FORMAT
-            )
+                f"{obj['created']}", self.CSA_TIME_FORMAT)
 
-            if obj_time > last_create:
+            if obj_time >= last_create:
                 if self.valid or self.is_summ_keyword_present(obj["description"]):
                     filtered_objlist.append(obj)
 
             if obj_time > new_last_time:
                 new_last_time = obj_time
-                if type == self.tup_type[0]:
-                    self.last_title_dict['ALERT_LAST_TITLE'] = obj['title']
-                elif type == self.tup_type[1]:
-                    self.last_title_dict['ADV_LAST_TITLE'] = obj['title']
-                elif type == self.tup_type[2]:
-                    self.last_title_dict['PUB_LAST_TITLE'] = obj['title']
+
+        if type == self.tup_type[0]:
+            self.last_title_dict['ALERT_LATEST_TITLE'] = first_title
+        elif type == self.tup_type[1]:
+            self.last_title_dict['ADV_LATEST_TITLE'] = first_title
+        elif type == self.tup_type[2]:
+            self.last_title_dict['PUB_LATEST_TITLE'] = first_title
 
         return filtered_objlist, new_last_time
 
