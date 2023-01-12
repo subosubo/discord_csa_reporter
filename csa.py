@@ -18,7 +18,7 @@ class csa_report:
         self.CSA_JSON_PATH = join(
             pathlib.Path(__file__).parent.absolute(), "output/record.json"
         )
-        self.CSA_TIME_FORMAT = "%d %b %Y %H:%M:%S"
+        self.CSA_TIME_FORMAT = "%d %b %Y"
 
         self.ALERT_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
         self.ADV_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
