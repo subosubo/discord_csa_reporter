@@ -122,7 +122,12 @@ class csa_report:
             r = requests.get(f"{self.CSA_URL}/{subdomain}")
             if r.status_code == 200:
 
-                driver = webdriver.Chrome()
+                options = webdriver.ChromeOptions()
+
+                # run the browser in headless mode (without GUI)
+                options.add_argument('--headless')
+
+                driver = webdriver.Chrome(options=options)
                 driver.get(f"{self.CSA_URL}/{subdomain}")
                 # looking for the date, since it is one of the elements that renders along with javascript
                 element = WebDriverWait(driver, 10).until(
