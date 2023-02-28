@@ -3,16 +3,12 @@ import json
 import logging
 import pathlib
 import sys
-import yaml
-import requests
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from discord import Color, Embed, HTTPException
 from os.path import join
 from bs4 import BeautifulSoup
-from typing import List, Tuple
+
+import yaml
+import requests
+from discord import Color, Embed, HTTPException
 
 
 class csa_report:
@@ -26,10 +22,10 @@ class csa_report:
 
         self.ALERT_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
         self.ADV_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
-        self.BULLET_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
+        self.PUB_CREATED = datetime.datetime.now() - datetime.timedelta(days=1)
 
         self.last_title_dict = {'ALERT_LATEST_TITLE': '',
-                                'ADV_LATEST_TITLE': '', 'BULLET_LATEST_TITLE': ''}
+                                'ADV_LATEST_TITLE': '', 'PUB_LATEST_TITLE': ''}
 
         self.logger = logging.getLogger("__main__")
         self.logger.setLevel(logging.INFO)
@@ -38,10 +34,10 @@ class csa_report:
         self.new_alerts_title = []
         self.new_advs = []
         self.new_advs_title = []
-        self.new_bullet = []
-        self.new_bullet_title = []
+        self.new_pubs = []
+        self.new_pubs_title = []
 
-        self.tup_type = ("ALERTS", "ADVISORIES", "BULLETINS")
+        self.tup_type = ("ALERTS", "ADVISORIES", "PUBLICATIONS")
 
         # Load keywords from config file
         self.KEYWORDS_CONFIG_PATH = join(
@@ -73,14 +69,14 @@ class csa_report:
                 csa_record = json.load(json_file)
                 self.last_title_dict['ALERT_LATEST_TITLE'] = csa_record['ALERT_LATEST_TITLE']
                 self.last_title_dict['ADV_LATEST_TITLE'] = csa_record['ADV_LATEST_TITLE']
-                self.last_title_dict['BULLET_LATEST_TITLE'] = csa_record['BULLET_LATEST_TITLE']
+                self.last_title_dict['PUB_LATEST_TITLE'] = csa_record['PUB_LATEST_TITLE']
                 self.ALERT_CREATED = datetime.datetime.strptime(
                     csa_record['ALERT_CREATED'], self.CSA_TIME_FORMAT)
                 self.ADV_CREATED = datetime.datetime.strptime(
                     csa_record['ADV_CREATED'], self.CSA_TIME_FORMAT
                 )
-                self.BULLET_CREATED = datetime.datetime.strptime(
-                    csa_record['BULLET_CREATED'], self.CSA_TIME_FORMAT
+                self.PUB_CREATED = datetime.datetime.strptime(
+                    csa_record['PUB_CREATED'], self.CSA_TIME_FORMAT
                 )
             json_file.close()
         # If error, just keep the fault date (today - 1 day)
@@ -102,10 +98,10 @@ class csa_report:
                             self.CSA_TIME_FORMAT
                         ),
                         "ADV_LATEST_TITLE": self.last_title_dict['ADV_LATEST_TITLE'],
-                        "BULLET_CREATED": self.BULLET_CREATED.strftime(
+                        "PUB_CREATED": self.PUB_CREATED.strftime(
                             self.CSA_TIME_FORMAT
                         ),
-                        "BULLET_LATEST_TITLE": self.last_title_dict['BULLET_LATEST_TITLE']
+                        "PUB_LATEST_TITLE": self.last_title_dict['PUB_LATEST_TITLE']
                     },
                     json_file,
                 )
@@ -113,7 +109,7 @@ class csa_report:
         except Exception as e:
             self.logger.error(f"ERROR-2: {e}")
 
-    ################## FILTER FOR ARTICLES  ####################
+    ################## FILTER FOR PUBLISH  ####################
 
     def get_list(self, subdomain):
 
@@ -121,59 +117,63 @@ class csa_report:
         try:
             r = requests.get(f"{self.CSA_URL}/{subdomain}")
             if r.status_code == 200:
+                soup = BeautifulSoup(r.text, "lxml")
+                for elem in soup.select(".sc-card-block"):
+                    result = {}
+                    result["csa"] = f"{self.CSA_URL}{elem.get('href')}"
+                    result["title"] = elem.find(class_="sc-card-title").get_text(
+                        " ", strip=True
+                    )
+                    result["description"] = elem.find(
+                        "p", class_="sc-card-desc"
+                    ).get_text(" ", strip=True)
+                    result["created"] = (
+                        elem.find("div", class_="sc-card-publish")
+                        .get_text(" ", strip=True)
+                        .split(" on ")[1]
+                    )
+                    results.append(result)
 
-                driver = webdriver.Chrome()
-                driver.get(f"{self.CSA_URL}/{subdomain}")
-                # looking for the date, since it is one of the elements that renders along with javascript
-                element = WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, 'm-card-article__note')))
-
-                if element:
-                    soup = BeautifulSoup(driver.page_source, "lxml")
-                    for elem in soup.select("a.m-card-article"):
-                        # if there is a link href for each section for m-card-article, assume that there is a report for publishing
-                        if elem.get('href'):
-                            result = {}
-                            result["csa"] = f"{self.CSA_URL}{elem.get('href')}"
-                            result["title"] = elem.find(
-                                'div', class_="m-card-article__title truncate-3-lines").get_text(" ", strip=True)
-                            result["description"] = elem.find(
-                                'div', class_="m-card-article__desc truncate-3-lines").get_text(" ", strip=True)
-                            result["created"] = elem.find(
-                                'div', class_="m-card-article__note").get_text(" ", strip=True)
-                            results.append(result)
-
-                driver.quit()
                 return results
         except (HTTPException, ConnectionError) as e:
             self.logger.error(f"{e}")
             sys.exit(1)
+            # os.system("kill 1")
 
-    def filterlist(self, obj_list: List[dict], last_create: datetime.datetime, obj_type: str) -> Tuple[List[dict], datetime.datetime]:
-        filtered_list = []
-        new_last_create = last_create
+    def filterlist(self, listobj: list, last_create: datetime.datetime, type: str):
+
+        filtered_objlist = []
+        new_last_time = last_create
+        first_article = True
         first_title = ''
 
-        for obj in obj_list:
-            # first_title will contain the title of the first object in the list, indicating that the first object has been processed.
-            if not first_title:
+        for obj in listobj:
+            if first_article:
                 first_title = obj['title']
+                first_article = False
 
             # if first element title is found in any of the latest title, it will break out of loop since there's nothing to update
-            obj_time = datetime.datetime.strptime(
-                f"{obj['created']}", self.CSA_TIME_FORMAT)
-            if obj_time < last_create or obj['title'] in self.last_title_dict.values():
+            if (obj['title'] in self.last_title_dict.values()):
                 break
 
-            if self.valid or self.is_summ_keyword_present(obj["description"]):
-                filtered_list.append(obj)
+            obj_time = datetime.datetime.strptime(
+                f"{obj['created']}", self.CSA_TIME_FORMAT)
 
-            if obj_time > new_last_create:
-                new_last_create = obj_time
+            if obj_time >= last_create:
+                if self.valid or self.is_summ_keyword_present(obj["description"]):
+                    filtered_objlist.append(obj)
 
-        self.last_title_dict[f'{obj_type}_LATEST_TITLE'] = first_title
+            if obj_time > new_last_time:
+                new_last_time = obj_time
 
-        return filtered_list, new_last_create
+        if type == self.tup_type[0]:
+            self.last_title_dict['ALERT_LATEST_TITLE'] = first_title
+        elif type == self.tup_type[1]:
+            self.last_title_dict['ADV_LATEST_TITLE'] = first_title
+        elif type == self.tup_type[2]:
+            self.last_title_dict['PUB_LATEST_TITLE'] = first_title
+
+        return filtered_objlist, new_last_time
 
     def is_summ_keyword_present(self, summary: str):
         # Given the summary check if any keyword is present
@@ -186,7 +186,7 @@ class csa_report:
 
     def get_new_alerts(self):
 
-        alerts = self.get_list("alerts-advisories/alerts")
+        alerts = self.get_list("singcert/Alerts")
         self.new_alerts, self.ALERT_CREATED = self.filterlist(
             alerts, self.ALERT_CREATED, self.tup_type[0]
         )
@@ -220,7 +220,7 @@ class csa_report:
 
     def get_new_advs(self):
 
-        adv = self.get_list("alerts-advisories/Advisories")
+        adv = self.get_list("singcert/Advisories")
         self.new_advs, self.ADV_CREATED = self.filterlist(
             adv, self.ADV_CREATED, self.tup_type[1]
         )
@@ -249,35 +249,34 @@ class csa_report:
 
         return embed
 
-    ################## GET BULLETINS FROM CSA  ####################
+    ################## GET PUBLICATION FROM CSA  ####################
 
-    def get_new_bulletin(self):
+    def get_new_pubs(self):
 
-        bullet = self.get_list("alerts-advisories/security-bulletins")
-        self.new_bullet, self.BULLET_CREATED = self.filterlist(
-            bullet, self.BULLET_CREATED, self.tup_type[2]
+        pub = self.get_list("singcert/Publications")
+        self.new_pubs, self.PUB_CREATED = self.filterlist(
+            pub, self.PUB_CREATED, self.tup_type[2]
         )
 
-        self.new_bullet_title = [new_bullet["title"]
-                                 for new_bullet in self.new_bullet]
-        self.logger.info(f"CSA Bulletins: {self.new_bullet_title}")
+        self.new_pubs_title = [new_pub["title"] for new_pub in self.new_pubs]
+        self.logger.info(f"CSA Publications: {self.new_pubs_title}")
 
-    def generate_new_bulletin_message(self, new_bullet) -> Embed:
+    def generate_new_pub_message(self, new_pubs) -> Embed:
         # Generate new CVE message for sending to discord
         embed = Embed(
-            title=f"🔈 *{new_bullet['title']}*",
-            description=new_bullet["description"]
-            if len(new_bullet["description"]) < 500
-            else new_bullet["description"][:500] + "...",
+            title=f"🔈 *{new_pubs['title']}*",
+            description=new_pubs["description"]
+            if len(new_pubs["description"]) < 500
+            else new_pubs["description"][:500] + "...",
             timestamp=datetime.datetime.now(),
             color=Color.yellow(),
         )
         embed.add_field(
-            name=f"📅  *Published*", value=f"{new_bullet['created']}", inline=True
+            name=f"📅  *Published*", value=f"{new_pubs['created']}", inline=True
         )
         embed.add_field(
             name=f"More Information",
-            value=f"{new_bullet['csa']}",
+            value=f"{new_pubs['csa']}",
             inline=False,
         )
 

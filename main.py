@@ -84,7 +84,7 @@ async def itscheckintime():
     csa.load_lasttimes()
     csa.get_new_alerts()
     csa.get_new_advs()
-    csa.get_new_pubs()
+    csa.get_new_bulletin()
 
     for alert in csa.new_alerts:
         alert_msg = csa.generate_new_alert_message(alert)
@@ -94,16 +94,16 @@ async def itscheckintime():
         adv_msg = csa.generate_new_adv_message(adv)
         await send_discord_message(adv_msg)
 
-    for pub in csa.new_pubs:
-        pub_msg = csa.generate_new_pub_message(pub)
-        await send_discord_message(pub_msg)
+    for bulletin in csa.new_bullet:
+        bullet_msg = csa.generate_new_bulletin_message(bulletin)
+        await send_discord_message(bullet_msg)
 
     csa.update_lasttimes()
 
 if __name__ == "__main__":
     scheduler = AsyncIOScheduler(timezone="Asia/Singapore")
     scheduler.add_job(
-        itscheckintime, "cron", day_of_week="mon-fri", hour="8-18/1"
+        itscheckintime, "cron", day_of_week="mon-fri", hour="8-20", minute="*/1"
     )
     scheduler.start()
     logger.info(
