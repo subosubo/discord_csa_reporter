@@ -176,7 +176,12 @@ class csa_report:
             if obj_time > new_last_create:
                 new_last_create = obj_time
 
-        self.last_title_dict[f'{obj_type}_LATEST_TITLE'] = first_title
+        if type == self.tup_type[0]:
+            self.last_title_dict['ALERT_LATEST_TITLE'] = first_title
+        elif type == self.tup_type[1]:
+            self.last_title_dict['ADV_LATEST_TITLE'] = first_title
+        elif type == self.tup_type[2]:
+            self.last_title_dict['BULLET_LATEST_TITLE'] = first_title
 
         return filtered_list, new_last_create
 
