@@ -186,7 +186,7 @@ class csa_report:
         elif type == self.tup_type[1]:
             self.last_title_dict['ADV_LATEST_TITLE'] = first_title
         elif type == self.tup_type[2]:
-            self.last_title_dict['PUB_LATEST_TITLE'] = first_title
+            self.last_title_dict['BULLET_LATEST_TITLE'] = first_title
 
         return filtered_objlist, new_last_time
 
