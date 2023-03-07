@@ -166,6 +166,7 @@ class csa_report:
             if obj_time > new_last_time:
                 new_last_time = obj_time
 
+        # self.last_title_dict[f'{obj_type}_LATEST_TITLE'] = first_title
         if type == self.tup_type[0]:
             self.last_title_dict['ALERT_LATEST_TITLE'] = first_title
         elif type == self.tup_type[1]:

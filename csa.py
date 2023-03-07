@@ -154,36 +154,41 @@ class csa_report:
             self.logger.error(f"{e}")
             sys.exit(1)
 
-    def filterlist(self, obj_list: List[dict], last_create: datetime.datetime, obj_type: str) -> Tuple[List[dict], datetime.datetime]:
-        filtered_list = []
-        new_last_create = last_create
+    def filterlist(self, listobj: list, last_create: datetime.datetime, type: str):
+
+        filtered_objlist = []
+        new_last_time = last_create
+        first_article = True
         first_title = ''
 
-        for obj in obj_list:
-            # first_title will contain the title of the first object in the list, indicating that the first object has been processed.
-            if not first_title:
+        for obj in listobj:
+            if first_article:
                 first_title = obj['title']
+                first_article = False
 
             # if first element title is found in any of the latest title, it will break out of loop since there's nothing to update
-            obj_time = datetime.datetime.strptime(
-                f"{obj['created']}", self.CSA_TIME_FORMAT)
-            if obj_time < last_create or obj['title'] in self.last_title_dict.values():
+            if (obj['title'] in self.last_title_dict.values()):
                 break
 
-            if self.valid or self.is_summ_keyword_present(obj["description"]):
-                filtered_list.append(obj)
+            obj_time = datetime.datetime.strptime(
+                f"{obj['created']}", self.CSA_TIME_FORMAT)
 
-            if obj_time > new_last_create:
-                new_last_create = obj_time
+            if obj_time >= last_create:
+                if self.valid or self.is_summ_keyword_present(obj["description"]):
+                    filtered_objlist.append(obj)
 
+            if obj_time > new_last_time:
+                new_last_time = obj_time
+
+        # self.last_title_dict[f'{obj_type}_LATEST_TITLE'] = first_title
         if type == self.tup_type[0]:
             self.last_title_dict['ALERT_LATEST_TITLE'] = first_title
         elif type == self.tup_type[1]:
             self.last_title_dict['ADV_LATEST_TITLE'] = first_title
         elif type == self.tup_type[2]:
-            self.last_title_dict['BULLET_LATEST_TITLE'] = first_title
+            self.last_title_dict['PUB_LATEST_TITLE'] = first_title
 
-        return filtered_list, new_last_create
+        return filtered_objlist, new_last_time
 
     def is_summ_keyword_present(self, summary: str):
         # Given the summary check if any keyword is present
