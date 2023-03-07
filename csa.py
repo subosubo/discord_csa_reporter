@@ -130,7 +130,7 @@ class csa_report:
                 driver = webdriver.Chrome(options=options)
                 driver.get(f"{self.CSA_URL}/{subdomain}")
                 # looking for the date, since it is one of the elements that renders along with javascript
-                element = WebDriverWait(driver, 10).until(
+                element = WebDriverWait(driver, 20).until(
                     EC.presence_of_element_located((By.CLASS_NAME, 'm-card-article__note')))
 
                 if element:
