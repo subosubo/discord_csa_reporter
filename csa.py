@@ -71,16 +71,16 @@ class csa_report:
 
             with open(self.CSA_JSON_PATH, "r") as json_file:
                 csa_record = json.load(json_file)
-                self.last_title_dict['ALERT_LATEST_TITLE'] = csa_record['ALERT_LATEST_TITLE']
-                self.last_title_dict['ADV_LATEST_TITLE'] = csa_record['ADV_LATEST_TITLE']
-                self.last_title_dict['BULLET_LATEST_TITLE'] = csa_record['BULLET_LATEST_TITLE']
+                self.last_title_dict[f'{self.tup_type[0]}_LATEST_TITLE'] = csa_record[f'{self.tup_type[0]}_LATEST_TITLE']
+                self.last_title_dict[f'{self.tup_type[1]}_LATEST_TITLE'] = csa_record[f'{self.tup_type[1]}_LATEST_TITLE']
+                self.last_title_dict[f'{self.tup_type[2]}_LATEST_TITLE'] = csa_record[f'{self.tup_type[2]}_LATEST_TITLE']
                 self.ALERT_CREATED = datetime.datetime.strptime(
-                    csa_record['ALERT_CREATED'], self.CSA_TIME_FORMAT)
+                    csa_record[f'{self.tup_type[0]}_CREATED'], self.CSA_TIME_FORMAT)
                 self.ADV_CREATED = datetime.datetime.strptime(
-                    csa_record['ADV_CREATED'], self.CSA_TIME_FORMAT
+                    csa_record[f'{self.tup_type[1]}_CREATED'], self.CSA_TIME_FORMAT
                 )
                 self.BULLET_CREATED = datetime.datetime.strptime(
-                    csa_record['BULLET_CREATED'], self.CSA_TIME_FORMAT
+                    csa_record[f'{self.tup_type[2]}_CREATED'], self.CSA_TIME_FORMAT
                 )
             json_file.close()
         # If error, just keep the fault date (today - 1 day)
@@ -94,18 +94,18 @@ class csa_report:
             with open(self.CSA_JSON_PATH, "w") as json_file:
                 json.dump(
                     {
-                        "ALERT_CREATED": self.ALERT_CREATED.strftime(
+                        f"{self.tup_type[0]}_CREATED": self.ALERT_CREATED.strftime(
                             self.CSA_TIME_FORMAT
                         ),
-                        "ALERT_LATEST_TITLE": self.last_title_dict['ALERT_LATEST_TITLE'],
-                        "ADV_CREATED": self.ADV_CREATED.strftime(
+                        f"{self.tup_type[0]}_LATEST_TITLE": self.last_title_dict[f'{self.tup_type[0]}_LATEST_TITLE'],
+                        f"{self.tup_type[1]}_CREATED": self.ADV_CREATED.strftime(
                             self.CSA_TIME_FORMAT
                         ),
-                        "ADV_LATEST_TITLE": self.last_title_dict['ADV_LATEST_TITLE'],
-                        "BULLET_CREATED": self.BULLET_CREATED.strftime(
+                        f"{self.tup_type[1]}_LATEST_TITLE": self.last_title_dict[f'{self.tup_type[1]}_LATEST_TITLE'],
+                        f"{self.tup_type[2]}_CREATED": self.BULLET_CREATED.strftime(
                             self.CSA_TIME_FORMAT
                         ),
-                        "BULLET_LATEST_TITLE": self.last_title_dict['BULLET_LATEST_TITLE']
+                        f"{self.tup_type[2]}_LATEST_TITLE": self.last_title_dict[f'{self.tup_type[2]}_LATEST_TITLE']
                     },
                     json_file,
                 )
@@ -154,6 +154,10 @@ class csa_report:
             self.logger.error(f"{e}")
             sys.exit(1)
 
+        except Exception as e:
+            self.logger.error(f"{e}")
+            sys.exit(1)
+
     def filterlist(self, listobj: list, last_create: datetime.datetime, type: str):
 
         filtered_objlist = []
@@ -180,13 +184,7 @@ class csa_report:
             if obj_time > new_last_time:
                 new_last_time = obj_time
 
-        # self.last_title_dict[f'{obj_type}_LATEST_TITLE'] = first_title
-        if type == self.tup_type[0]:
-            self.last_title_dict['ALERT_LATEST_TITLE'] = first_title
-        elif type == self.tup_type[1]:
-            self.last_title_dict['ADV_LATEST_TITLE'] = first_title
-        elif type == self.tup_type[2]:
-            self.last_title_dict['BULLET_LATEST_TITLE'] = first_title
+        self.last_title_dict[f'{type}_LATEST_TITLE'] = first_title
 
         return filtered_objlist, new_last_time
 
