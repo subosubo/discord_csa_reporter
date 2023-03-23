@@ -12,7 +12,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from discord import Color, Embed, HTTPException
 from os.path import join
 from bs4 import BeautifulSoup
-from typing import List, Tuple
+#from typing import List, Tuple
 
 
 class csa_report:
